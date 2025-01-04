@@ -15,6 +15,7 @@ import {
 import moment from 'moment'
 import { RootState } from './store/store'
 import SearchedResultItem from './components/searched-result-item'
+import { WeatherResponse } from './types/weather-response'
 
 function App() {
   const appDispatch = useDispatch()
@@ -25,6 +26,9 @@ function App() {
     [key: string]: string | number
   }>({})
   const [errorMessage, setErrorMessage] = useState<string>('')
+  const [weatherResult, setWeatherResult] = useState<
+    WeatherResponse | undefined
+  >()
 
   const fetchGeoLocation = useCallback(async () => {
     try {
@@ -70,9 +74,10 @@ function App() {
 
   const fetchWeatherData = useCallback(async (lat: number, lon: number) => {
     try {
-      await axiosInstance.get(
+      const response = await axiosInstance.get(
         `${TodayWeatherApi}?lat=${lat}&lon=${lon}&appid=${process.env.REACT_APP_OPEN_WEATHER_API_KEY}`
       )
+      setWeatherResult(response as unknown as WeatherResponse)
     } catch (error) {
       setErrorMessage(
         'Error fetching weather data for the searched location, please try again later.'
@@ -144,6 +149,28 @@ function App() {
         }}
       />
       {errorMessage && <div className='bg-danger'>{errorMessage}</div>}
+      {searchedResults.length > 0 && weatherResult && (
+        <div className='d-flex text-start'>
+          <div>
+            <p>Description:</p>
+            <p>Temperature:</p>
+            <p>Humidity:</p>
+            <p>Time:</p>
+          </div>
+          <div>
+            <p>
+              {weatherResult?.weather?.length > 0
+                ? weatherResult?.weather[0].description
+                : '-'}
+            </p>
+            <p>
+              {weatherResult.main.temp_min}&deg;C ~ {weatherResult.main.temp_max}&deg;C
+            </p>
+            <p>{weatherResult.main.humidity}%</p>
+            <p>{moment(weatherResult.dt * 1000).format('yyyy-MM-DD HH:mmA')}</p>
+          </div>
+        </div>
+      )}
       <hr />
       {searchedResults.length > 0 &&
         searchedResults.map((item, index) => {
