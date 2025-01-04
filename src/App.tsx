@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import './App.css'
 import axiosInstance from './axios/axios'
 import { GetGeoApi, TodayWeatherApi } from './constants/apis'
@@ -7,14 +7,20 @@ import Button from './components/button'
 import { cloneDeep } from 'lodash'
 import { GeoLocationResponse } from './types/geo-location-response'
 import { useDispatch, useSelector } from 'react-redux'
-import { updateSearchedResults } from './store/slices/searched-results-slice'
+import {
+  addNewSearchedResult,
+  replaceExistingSearchedResult,
+  updateSearchedResults
+} from './store/slices/searched-results-slice'
 import moment from 'moment'
 import { RootState } from './store/store'
 import SearchedResultItem from './components/searched-result-item'
 
 function App() {
   const appDispatch = useDispatch()
-  const history = useSelector((state: RootState) => state.searchedResultsSlice.searchedResults)
+  const searchedResults = useSelector(
+    (state: RootState) => state.searchedResultsSlice.searchedResults
+  )
   const [queryObject, setQueryObject] = useState<{
     [key: string]: string | number
   }>({})
@@ -39,7 +45,7 @@ function App() {
       if (response.length > 0) {
         console.log(response[0])
         appDispatch(
-          updateSearchedResults({
+          addNewSearchedResult({
             city: response[0].name,
             country: response[0].country,
             lat: response[0].lat,
@@ -54,7 +60,7 @@ function App() {
     }
 
     return null
-  }, [queryObject])
+  }, [queryObject, appDispatch])
 
   const fetchWeatherData = useCallback(async (lat: number, lon: number) => {
     await axiosInstance.get(
@@ -78,9 +84,30 @@ function App() {
     [queryObject]
   )
 
-useEffect(() => {
-  console.log(history)
-}, [history])
+  const handleSearchFromPreviousResult = useCallback(
+    async (index: number) => {
+      const lat = searchedResults[index].lat
+      const lon = searchedResults[index].lon
+      await fetchWeatherData(lat, lon)
+      appDispatch(
+        replaceExistingSearchedResult({
+          lat,
+          lon,
+          lastSearchedAt: moment().format('yyyy-MM-DD HH:mm:ss')
+        })
+      )
+    },
+    [searchedResults, fetchWeatherData, appDispatch]
+  )
+
+  const handleDeleteSearchedResult = useCallback(
+    (index: number) => {
+      const updatingSearchedResults = cloneDeep(searchedResults)
+      updatingSearchedResults.splice(index, 1)
+      appDispatch(updateSearchedResults(updatingSearchedResults))
+    },
+    [searchedResults, appDispatch]
+  )
 
   return (
     <div className='App'>
@@ -103,9 +130,17 @@ useEffect(() => {
         }}
       />
       <hr />
-      {history.length > 0 && history.map((item, index) => {
-        return <SearchedResultItem searchedResult={item} index={index}/>
-      })}
+      {searchedResults.length > 0 &&
+        searchedResults.map((item, index) => {
+          return (
+            <SearchedResultItem
+              searchedResult={item}
+              index={index}
+              onSearch={handleSearchFromPreviousResult}
+              onDelete={handleDeleteSearchedResult}
+            />
+          )
+        })}
     </div>
   )
 }
