@@ -24,6 +24,7 @@ function App() {
   const [queryObject, setQueryObject] = useState<{
     [key: string]: string | number
   }>({})
+  const [errorMessage, setErrorMessage] = useState<string>('')
 
   const fetchGeoLocation = useCallback(async () => {
     try {
@@ -54,8 +55,13 @@ function App() {
           })
         )
         return response[0]
+      } else {
+        setErrorMessage('Geolocation not found.')
       }
     } catch (error) {
+      setErrorMessage(
+        'Error fetching geolocation, please check your search query and try again later.'
+      )
       console.log(error)
     }
 
@@ -63,12 +69,19 @@ function App() {
   }, [queryObject, appDispatch])
 
   const fetchWeatherData = useCallback(async (lat: number, lon: number) => {
-    await axiosInstance.get(
-      `${TodayWeatherApi}?lat=${lat}&lon=${lon}&appid=${process.env.REACT_APP_OPEN_WEATHER_API_KEY}`
-    )
+    try {
+      await axiosInstance.get(
+        `${TodayWeatherApi}?lat=${lat}&lon=${lon}&appid=${process.env.REACT_APP_OPEN_WEATHER_API_KEY}`
+      )
+    } catch (error) {
+      setErrorMessage(
+        'Error fetching weather data for the searched location, please try again later.'
+      )
+    }
   }, [])
 
   const searchTodayWeatherData = useCallback(async () => {
+    setErrorMessage('')
     const geolocationResponse = await fetchGeoLocation()
     if (geolocationResponse) {
       await fetchWeatherData(geolocationResponse.lat, geolocationResponse.lon)
@@ -86,6 +99,7 @@ function App() {
 
   const handleSearchFromPreviousResult = useCallback(
     async (index: number) => {
+      setErrorMessage('')
       const lat = searchedResults[index].lat
       const lon = searchedResults[index].lon
       await fetchWeatherData(lat, lon)
@@ -129,6 +143,7 @@ function App() {
           searchTodayWeatherData()
         }}
       />
+      {errorMessage && <div className='bg-danger'>{errorMessage}</div>}
       <hr />
       {searchedResults.length > 0 &&
         searchedResults.map((item, index) => {
