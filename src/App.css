@@ -43,7 +43,6 @@
 
 .country-search-input {
   background-color: rgba(26, 26, 26, 0.5);
-  width: 620px;
   height: 60px;
   border-radius: 20px;
   color: white;
@@ -58,6 +57,7 @@
   height: 60px;
   border-radius: 20px;
   padding: 13px;
+  border: 0;
 }
 
 .searched-results-body {
@@ -65,6 +65,12 @@
   border-radius: 40px;
   margin-top: 112px;
   padding: 50px;
+  position: relative;
+}
+
+.search-results-body-image {
+  width: 300px;
+  height: 300px;
 }
 
 .searched-result-items-list {

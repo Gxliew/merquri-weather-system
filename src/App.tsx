@@ -19,20 +19,20 @@ import { WeatherResponse } from './types/weather-response'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSearch } from '@fortawesome/free-solid-svg-icons'
 import { updateLatestDisplayWeatherResult } from './store/slices/weather-result.slice'
+import Sun from './assets/images/sun.png'
 
 function App() {
   const appDispatch = useDispatch()
   const searchedResults = useSelector(
     (state: RootState) => state.searchedResultsSlice.searchedResults
   )
-  const weatherResult = useSelector((state: RootState) => state.weatherResultSlice.latestDisplayWeatherResult)
+  const weatherResult = useSelector(
+    (state: RootState) => state.weatherResultSlice.latestDisplayWeatherResult
+  )
   const [queryObject, setQueryObject] = useState<{
     [key: string]: string | number
   }>({})
   const [errorMessage, setErrorMessage] = useState<string>('')
-  // const [weatherResult, setWeatherResult] = useState<
-  //   WeatherResponse | undefined
-  // >()
 
   const fetchGeoLocation = useCallback(async () => {
     try {
@@ -76,18 +76,25 @@ function App() {
     return null
   }, [queryObject, appDispatch])
 
-  const fetchWeatherData = useCallback(async (lat: number, lon: number) => {
-    try {
-      const response = await axiosInstance.get(
-        `${TodayWeatherApi}?lat=${lat}&lon=${lon}&appid=${process.env.REACT_APP_OPEN_WEATHER_API_KEY}`
-      )
-      appDispatch(updateLatestDisplayWeatherResult(response as unknown as WeatherResponse))
-    } catch (error) {
-      setErrorMessage(
-        'Error fetching weather data for the searched location, please try again later.'
-      )
-    }
-  }, [appDispatch])
+  const fetchWeatherData = useCallback(
+    async (lat: number, lon: number) => {
+      try {
+        const response = await axiosInstance.get(
+          `${TodayWeatherApi}?lat=${lat}&lon=${lon}&appid=${process.env.REACT_APP_OPEN_WEATHER_API_KEY}`
+        )
+        appDispatch(
+          updateLatestDisplayWeatherResult(
+            response as unknown as WeatherResponse
+          )
+        )
+      } catch (error) {
+        setErrorMessage(
+          'Error fetching weather data for the searched location, please try again later.'
+        )
+      }
+    },
+    [appDispatch]
+  )
 
   const searchTodayWeatherData = useCallback(async () => {
     setErrorMessage('')
@@ -143,7 +150,7 @@ function App() {
       <div className='d-flex align-items-center'>
         <Input
           className='country-search-input'
-          style={{ marginRight: '20px' }}
+          style={{ marginRight: '20px', width: '95%' }}
           type='text'
           onChange={(e) => updateQueryObject('country', e)}
           value={queryObject['country'] ?? ''}
@@ -163,9 +170,19 @@ function App() {
           }}
         />
       </div>
-      {errorMessage && <div className='bg-danger'>{errorMessage}</div>}
+      {errorMessage && (
+        <div className='mt-4 rounded' style={{ backgroundColor: '#F54C49' }}>
+          {errorMessage}
+        </div>
+      )}
       {searchedResults.length > 0 && (
         <div className='searched-results-body'>
+          <img
+            className='search-results-body-image'
+            src={Sun}
+            alt='sun'
+            style={{ position: 'absolute', top: '-115px', right: '0' }}
+          />
           {weatherResult && (
             <div style={{ textAlign: 'left' }}>
               <p style={{ marginBottom: 0 }}>Today’s Weather</p>

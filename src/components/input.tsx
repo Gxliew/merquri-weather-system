@@ -11,7 +11,7 @@ export type InputProps = {
 
 const Input = ({ className, value, label, type = 'text', style, onChange }: InputProps) => {
   return (
-    <div style={{ display: 'inline-block'}}>
+    <div style={{ width: '100%' }}>
       {/* <label style={{position: 'absolute', left: '20px' }}>{label}</label> */}
       <input
         className={className}

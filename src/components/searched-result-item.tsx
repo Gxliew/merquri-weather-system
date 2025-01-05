@@ -25,7 +25,7 @@ const SearchedResultItem = ({
       </p>
       <div className='d-flex gap-2'>
         <p style={{ color: '#FFFFFF66' }}>
-          {moment(searchedResult.lastSearchedAt).format('DD-MM-yyyy hh:mm:ssA')}
+          {moment(searchedResult.lastSearchedAt).format('DD-MM-yyyy hh:mmA')}
         </p>
         <Button
           className='searched-result-item-button'
