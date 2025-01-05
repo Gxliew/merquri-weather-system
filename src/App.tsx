@@ -18,7 +18,7 @@ import SearchedResultItem from './components/searched-result-item'
 import { WeatherResponse } from './types/weather-response'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSearch } from '@fortawesome/free-solid-svg-icons'
-import { updateLatestDisplayWeatherResult } from './store/slices/weather-result.slice'
+import { clearWeatherResult, updateLatestDisplayWeatherResult } from './store/slices/weather-result.slice'
 import Sun from './assets/images/sun.png'
 import useIsMobile from './hooks/use-is-mobile'
 
@@ -30,31 +30,20 @@ function App() {
   const weatherResult = useSelector(
     (state: RootState) => state.weatherResultSlice.latestDisplayWeatherResult
   )
-  const [queryObject, setQueryObject] = useState<{
-    [key: string]: string | number
-  }>({})
+  const [queryString, setQueryString] = useState<string>('')
   const [errorMessage, setErrorMessage] = useState<string>('')
   const { isMobile } = useIsMobile()
 
+  //function to fetch geolocaton using query string entered
   const fetchGeoLocation = useCallback(async () => {
     try {
-      let query = ''
-      const city = queryObject['city'] ?? ''
-      const country = queryObject['country'] ?? ''
-      if (city) {
-        query = query + city
-      }
-
-      if (country) {
-        query = query + (query.length > 0 ? ',' : '') + country
-      }
-
       const response: GeoLocationResponse[] = await axiosInstance.get(
-        `${GetGeoApi}?q=${query}&appid=${process.env.REACT_APP_OPEN_WEATHER_API_KEY}`
+        `${GetGeoApi}?q=${queryString}&appid=${process.env.REACT_APP_OPEN_WEATHER_API_KEY}`
       )
 
       if (response.length > 0) {
         console.log(response[0])
+        //update the redux slice for search history array
         appDispatch(
           addNewSearchedResult({
             city: response[0].name,
@@ -76,14 +65,16 @@ function App() {
     }
 
     return null
-  }, [queryObject, appDispatch])
+  }, [queryString, appDispatch])
 
+  //function to fetch weather data using geolocation
   const fetchWeatherData = useCallback(
     async (lat: number, lon: number) => {
       try {
         const response = await axiosInstance.get(
           `${TodayWeatherApi}?lat=${lat}&lon=${lon}&appid=${process.env.REACT_APP_OPEN_WEATHER_API_KEY}`
         )
+        //update the display weather result to redux slice
         appDispatch(
           updateLatestDisplayWeatherResult(
             response as unknown as WeatherResponse
@@ -98,6 +89,7 @@ function App() {
     [appDispatch]
   )
 
+  //function to combine getting geolocation then query for weather data
   const searchTodayWeatherData = useCallback(async () => {
     setErrorMessage('')
     const geolocationResponse = await fetchGeoLocation()
@@ -106,15 +98,7 @@ function App() {
     }
   }, [fetchGeoLocation, fetchWeatherData])
 
-  const updateQueryObject = useCallback(
-    (key: string, value: string | number) => {
-      const updatingQueryObject = cloneDeep(queryObject)
-      updatingQueryObject[key] = value
-      setQueryObject(updatingQueryObject)
-    },
-    [queryObject]
-  )
-
+  //function to search using history records as it will skip the geolocation fetching
   const handleSearchFromPreviousResult = useCallback(
     async (index: number) => {
       setErrorMessage('')
@@ -132,31 +116,31 @@ function App() {
     [searchedResults, fetchWeatherData, appDispatch]
   )
 
+  //function to delete searched history record
   const handleDeleteSearchedResult = useCallback(
     (index: number) => {
       const updatingSearchedResults = cloneDeep(searchedResults)
       updatingSearchedResults.splice(index, 1)
       appDispatch(updateSearchedResults(updatingSearchedResults))
+      if(updatingSearchedResults.length > 0) {
+        fetchWeatherData(updatingSearchedResults[0].lat, updatingSearchedResults[0].lon)
+      } else {
+        appDispatch(clearWeatherResult())
+      }
+      
     },
-    [searchedResults, appDispatch]
+    [searchedResults, appDispatch, fetchWeatherData]
   )
 
   return (
     <div className='App'>
-      {/* <Input
-        type='text'
-        onChange={(e) => updateQueryObject('city', e)}
-        value={queryObject['city'] ?? ''}
-        label={'City'}
-      /> */}
       <div className='d-flex align-items-center'>
         <Input
           className='country-search-input'
           style={{ marginRight: '20px', width: '95%' }}
           type='text'
-          onChange={(e) => updateQueryObject('country', e)}
-          value={queryObject['country'] ?? ''}
-          label={'Country'}
+          onChange={(e) => setQueryString(e.toString())}
+          value={queryString}
         />
         <Button
           className='query-search-button'
