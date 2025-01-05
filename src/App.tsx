@@ -213,7 +213,7 @@ function App() {
                     </p>
                   </>
                 ) : (
-                  <div style={{ marginBottom: '16px' }}>
+                  <div style={{ marginBottom: '16px', textAlign: 'end' }}>
                     <p className='mb-0'>
                       {weatherResult?.weather?.length > 0
                         ? weatherResult?.weather[0].main
