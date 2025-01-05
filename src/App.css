@@ -1,5 +1,9 @@
 .App {
   text-align: center;
+  max-width: 700px;
+  margin: 0 auto;
+  color: white;
+  padding-top: 32px;
 }
 
 .App-logo {
@@ -35,4 +39,57 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.country-search-input {
+  background-color: rgba(26, 26, 26, 0.5);
+  width: 620px;
+  height: 60px;
+  border-radius: 20px;
+  color: white;
+  padding: 32px;
+  outline: none;
+  border: 0;
+}
+
+.query-search-button {
+  background-color: #28124D;
+  width: 60px;
+  height: 60px;
+  border-radius: 20px;
+  padding: 13px;
+}
+
+.searched-results-body {
+  background-color: #1A1A1A4D;
+  border-radius: 40px;
+  margin-top: 112px;
+  padding: 50px;
+}
+
+.searched-result-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  p {
+    margin-bottom: 0;
+  }
+}
+
+.searched-result-item {
+  background-color: #1A1A1A80;
+  padding: 21px;
+  border-radius: 16px;
+  line-height: 2rem;
+}
+
+.searched-result-item-button {
+  background-color: #1A1A1A80;
+  border: 2px solid #FFFFFF66;
+  width: 34px;
+  height: 34px;
+  border-radius: 16px;
+  color: #FFFFFF66;
+  line-height: 1rem;
 }

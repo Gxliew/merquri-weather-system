@@ -16,19 +16,23 @@ import moment from 'moment'
 import { RootState } from './store/store'
 import SearchedResultItem from './components/searched-result-item'
 import { WeatherResponse } from './types/weather-response'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faSearch } from '@fortawesome/free-solid-svg-icons'
+import { updateLatestDisplayWeatherResult } from './store/slices/weather-result.slice'
 
 function App() {
   const appDispatch = useDispatch()
   const searchedResults = useSelector(
     (state: RootState) => state.searchedResultsSlice.searchedResults
   )
+  const weatherResult = useSelector((state: RootState) => state.weatherResultSlice.latestDisplayWeatherResult)
   const [queryObject, setQueryObject] = useState<{
     [key: string]: string | number
   }>({})
   const [errorMessage, setErrorMessage] = useState<string>('')
-  const [weatherResult, setWeatherResult] = useState<
-    WeatherResponse | undefined
-  >()
+  // const [weatherResult, setWeatherResult] = useState<
+  //   WeatherResponse | undefined
+  // >()
 
   const fetchGeoLocation = useCallback(async () => {
     try {
@@ -77,13 +81,13 @@ function App() {
       const response = await axiosInstance.get(
         `${TodayWeatherApi}?lat=${lat}&lon=${lon}&appid=${process.env.REACT_APP_OPEN_WEATHER_API_KEY}`
       )
-      setWeatherResult(response as unknown as WeatherResponse)
+      appDispatch(updateLatestDisplayWeatherResult(response as unknown as WeatherResponse))
     } catch (error) {
       setErrorMessage(
         'Error fetching weather data for the searched location, please try again later.'
       )
     }
-  }, [])
+  }, [appDispatch])
 
   const searchTodayWeatherData = useCallback(async () => {
     setErrorMessage('')
@@ -130,59 +134,78 @@ function App() {
 
   return (
     <div className='App'>
-      <Input
+      {/* <Input
         type='text'
         onChange={(e) => updateQueryObject('city', e)}
         value={queryObject['city'] ?? ''}
         label={'City'}
-      />
-      <Input
-        type='text'
-        onChange={(e) => updateQueryObject('country', e)}
-        value={queryObject['country'] ?? ''}
-        label={'Country'}
-      />
-      <Button
-        children={<p>Search</p>}
-        onClick={() => {
-          searchTodayWeatherData()
-        }}
-      />
+      /> */}
+      <div className='d-flex align-items-center'>
+        <Input
+          className='country-search-input'
+          style={{ marginRight: '20px' }}
+          type='text'
+          onChange={(e) => updateQueryObject('country', e)}
+          value={queryObject['country'] ?? ''}
+          label={'Country'}
+        />
+        <Button
+          className='query-search-button'
+          children={
+            <FontAwesomeIcon
+              icon={faSearch}
+              color='white'
+              style={{ height: 34, width: 34 }}
+            />
+          }
+          onClick={() => {
+            searchTodayWeatherData()
+          }}
+        />
+      </div>
       {errorMessage && <div className='bg-danger'>{errorMessage}</div>}
-      {searchedResults.length > 0 && weatherResult && (
-        <div className='d-flex text-start'>
-          <div>
-            <p>Description:</p>
-            <p>Temperature:</p>
-            <p>Humidity:</p>
-            <p>Time:</p>
-          </div>
-          <div>
-            <p>
-              {weatherResult?.weather?.length > 0
-                ? weatherResult?.weather[0].description
-                : '-'}
-            </p>
-            <p>
-              {weatherResult.main.temp_min}&deg;C ~ {weatherResult.main.temp_max}&deg;C
-            </p>
-            <p>{weatherResult.main.humidity}%</p>
-            <p>{moment(weatherResult.dt * 1000).format('yyyy-MM-DD HH:mmA')}</p>
+      {searchedResults.length > 0 && (
+        <div className='searched-results-body'>
+          {weatherResult && (
+            <div style={{ textAlign: 'left' }}>
+              <p style={{ marginBottom: 0 }}>Today’s Weather</p>
+              <p style={{ fontWeight: 'bold', fontSize: '80px' }}>
+                {weatherResult.main.temp}&deg;
+              </p>
+              <p style={{ marginBottom: 10 }}>
+                H: {weatherResult.main.temp_max}&deg; L:{' '}
+                {weatherResult.main.temp_min}&deg;
+              </p>
+              <div className='d-flex justify-content-between'>
+                <p className='fw-bold'>
+                  {searchedResults[0].city}, {searchedResults[0].country}
+                </p>
+                <p>
+                  {moment(weatherResult.dt * 1000).format('yyyy-MM-DD HH:mmA')}
+                </p>
+                <p>Humidity: {weatherResult.main.humidity}%</p>
+                <p>
+                  {weatherResult?.weather?.length > 0
+                    ? weatherResult?.weather[0].main
+                    : '-'}
+                </p>
+              </div>
+            </div>
+          )}
+          <div className='searched-result-items-list'>
+            {searchedResults.map((item, index) => {
+              return (
+                <SearchedResultItem
+                  searchedResult={item}
+                  index={index}
+                  onSearch={handleSearchFromPreviousResult}
+                  onDelete={handleDeleteSearchedResult}
+                />
+              )
+            })}
           </div>
         </div>
       )}
-      <hr />
-      {searchedResults.length > 0 &&
-        searchedResults.map((item, index) => {
-          return (
-            <SearchedResultItem
-              searchedResult={item}
-              index={index}
-              onSearch={handleSearchFromPreviousResult}
-              onDelete={handleDeleteSearchedResult}
-            />
-          )
-        })}
     </div>
   )
 }

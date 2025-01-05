@@ -1,24 +1,28 @@
-import React from 'react'
+import React, { CSSProperties } from 'react'
 
 export type InputProps = {
   label?: string
   type?: 'text' | 'number'
   value?: string | number
   onChange?: (e: string | number) => void
+  style?: CSSProperties
+  className?: string
 }
 
-const Input = ({ value, label, type = 'text', onChange }: InputProps) => {
+const Input = ({ className, value, label, type = 'text', style, onChange }: InputProps) => {
   return (
-    <>
-      {label && <p>{label}</p>}
+    <div style={{ display: 'inline-block'}}>
+      {/* <label style={{position: 'absolute', left: '20px' }}>{label}</label> */}
       <input
+        className={className}
+        style={style}
         type={type}
         value={value}
         onChange={(e) => {
           onChange?.(e.target.value)
         }}
       />
-    </>
+    </div>
   )
 }
 
