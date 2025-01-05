@@ -20,6 +20,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSearch } from '@fortawesome/free-solid-svg-icons'
 import { updateLatestDisplayWeatherResult } from './store/slices/weather-result.slice'
 import Sun from './assets/images/sun.png'
+import useIsMobile from './hooks/use-is-mobile'
 
 function App() {
   const appDispatch = useDispatch()
@@ -33,6 +34,7 @@ function App() {
     [key: string]: string | number
   }>({})
   const [errorMessage, setErrorMessage] = useState<string>('')
+  const { isMobile } = useIsMobile()
 
   const fetchGeoLocation = useCallback(async () => {
     try {
@@ -181,7 +183,6 @@ function App() {
             className='search-results-body-image'
             src={Sun}
             alt='sun'
-            style={{ position: 'absolute', top: '-115px', right: '0' }}
           />
           {weatherResult && (
             <div style={{ textAlign: 'left' }}>
@@ -197,15 +198,37 @@ function App() {
                 <p className='fw-bold'>
                   {searchedResults[0].city}, {searchedResults[0].country}
                 </p>
-                <p>
-                  {moment(weatherResult.dt * 1000).format('yyyy-MM-DD HH:mmA')}
-                </p>
-                <p>Humidity: {weatherResult.main.humidity}%</p>
-                <p>
-                  {weatherResult?.weather?.length > 0
-                    ? weatherResult?.weather[0].main
-                    : '-'}
-                </p>
+                {!isMobile ? (
+                  <>
+                    <p>
+                      {moment(weatherResult.dt * 1000).format(
+                        'yyyy-MM-DD HH:mmA'
+                      )}
+                    </p>
+                    <p>Humidity: {weatherResult.main.humidity}%</p>
+                    <p>
+                      {weatherResult?.weather?.length > 0
+                        ? weatherResult?.weather[0].main
+                        : '-'}
+                    </p>
+                  </>
+                ) : (
+                  <div style={{ marginBottom: '16px' }}>
+                    <p className='mb-0'>
+                      {weatherResult?.weather?.length > 0
+                        ? weatherResult?.weather[0].main
+                        : '-'}
+                    </p>
+                    <p className='mb-0'>
+                      Humidity: {weatherResult.main.humidity}%
+                    </p>
+                    <p className='mb-0'>
+                      {moment(weatherResult.dt * 1000).format(
+                        'yyyy-MM-DD HH:mmA'
+                      )}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}

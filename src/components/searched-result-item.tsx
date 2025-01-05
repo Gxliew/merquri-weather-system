@@ -20,13 +20,15 @@ const SearchedResultItem = ({
 }: SearchedResultItemProps) => {
   return (
     <div className='d-flex justify-content-between searched-result-item'>
-      <p>
-        {index + 1}. {searchedResult.city}, {searchedResult.country}
-      </p>
-      <div className='d-flex gap-2'>
+      <div className='searched-result-item-location-time' style={{width: '85%'}}>
+        <p>
+          {searchedResult.city}, {searchedResult.country}
+        </p>
         <p style={{ color: '#FFFFFF66' }}>
           {moment(searchedResult.lastSearchedAt).format('DD-MM-yyyy hh:mmA')}
         </p>
+      </div>
+      <div className='d-flex gap-2 searched-result-item-buttons'>
         <Button
           className='searched-result-item-button'
           children={
